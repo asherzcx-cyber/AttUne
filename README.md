@@ -54,18 +54,101 @@ Relaxation Training is for settling down rather than chasing a score.
 3. Watch the single live EEG waveform—not the orbiting orb—and follow the spoken meditation guidance.
 4. End the session when you are ready. Your session can appear in your history and daily training time.
 
-## Optional EEG connection
+## Connect OpenBCI Cyton + Daisy
 
-AttUne can accept a local OpenBCI Cyton + Daisy demo stream through the OpenBCI GUI. EEG is optional; the attention exercise can still run with the camera and reaction task.
+EEG is optional. AttUne works with camera and reaction-time training alone, but it can also read a **local** OpenBCI Cyton + Daisy stream to add an experimental EEG estimate to the training display.
 
-For the OpenBCI demo, run the OpenBCI GUI and AttUne on the **same computer**. In the GUI's Networking widget, send **Average Band Power** or **Band Power** over UDP to:
+### Before you start
 
-```text
-IP address: 127.0.0.1
-Port: 12345
+You need:
+
+- A Cyton + Daisy, the OpenBCI USB dongle, charged battery, electrodes, and electrode paste or saline setup appropriate for your equipment.
+- The latest [OpenBCI GUI](https://openbci.com/downloads) installed on the same Mac or PC that runs AttUne.
+- A local AttUne copy with Node.js installed.
+
+Use the hardware only according to OpenBCI's instructions. Check electrode contact and signal quality before beginning. The EEG feature is experimental training feedback, not a diagnosis, medical measurement, or clinical-grade interpretation.
+
+### 1. Start AttUne locally
+
+The OpenBCI GUI sends EEG data to `127.0.0.1`, which means “this same computer.” Open Terminal in the AttUne project and start the local server:
+
+```bash
+cd ~/Desktop/AttUne
+npm start
 ```
 
-AttUne will show EEG as live after it receives data and builds a short baseline. A phone connected to the public app cannot directly receive the local OpenBCI GUI stream.
+You should see both of these messages:
+
+```text
+AttUne is running at http://localhost:3000
+OpenBCI UDP bridge listening on 127.0.0.1:12345
+```
+
+Open **http://localhost:3000** on that computer, then sign in to AttUne.
+
+### 2. Connect Cyton + Daisy in OpenBCI GUI
+
+1. Plug in the OpenBCI USB dongle and turn on the Cyton board.
+2. For a standard USB-dongle connection, set the Cyton power switch to **PC**.
+3. Open OpenBCI GUI and choose the Cyton + Daisy / 16-channel setup that matches your hardware.
+4. Select the correct serial port and connect.
+5. Confirm that the time-series signal moves and use the GUI's signal-quality or impedance tools to improve poor electrode connections.
+6. Start the OpenBCI session/data stream.
+
+If the GUI cannot connect, power-cycle the board, confirm the dongle is connected, and check OpenBCI's [GUI troubleshooting guide](https://docs.openbci.com/Troubleshooting/GUI_Troubleshooting/).
+
+### 3. Add the two GUI widgets
+
+In OpenBCI GUI, open these widgets:
+
+1. **Band Power** — calculates the frequency-band values AttUne uses for its optional EEG estimate.
+2. **Networking** — sends that processed data to AttUne.
+
+Keep the Band Power widget open while streaming. In the Networking widget, add or configure a UDP output with these settings:
+
+| Setting | Value |
+| --- | --- |
+| Protocol | `UDP` |
+| Data type | `Average Band Power` (preferred) or `Band Power` |
+| IP address / host | `127.0.0.1` |
+| Port | `12345` |
+
+Click the Networking widget's **Start** or **Start Stream** button. The exact labels can vary slightly by OpenBCI GUI version. OpenBCI GUI outputs UDP data as JSON, which AttUne listens for on this local port. The GUI's Networking widget is designed for moving data to other applications through UDP, OSC, LSL, or Serial. [OpenBCI GUI overview](https://github.com/OpenBCI/OpenBCI_GUI)
+
+### 4. Confirm AttUne is receiving EEG
+
+Return to AttUne and start Attention Training or Relaxation Training. Within a few seconds, the training header should show **EEG live**.
+
+AttUne first gathers a short personal baseline. During that period, the EEG contribution has limited influence; this is intentional so a sudden raw value does not dominate the score. Once the signal is live, AttUne derives a training-only estimate from relative delta, theta, alpha, and beta band values.
+
+### Relaxation waveform
+
+For the Relaxation Training display, you can add a second UDP output in Networking:
+
+| Setting | Value |
+| --- | --- |
+| Protocol | `UDP` |
+| Data type | `Time Series` / raw time-series output |
+| IP address / host | `127.0.0.1` |
+| Port | `12345` |
+
+AttUne keeps the latest Channel 1 waveform in memory for the relaxation display. It does not store raw EEG waveform data in the user history database.
+
+### Important: local EEG versus the public phone app
+
+The live app at `https://64.177.52.101.nip.io` runs on a Vultr server. The OpenBCI GUI on your laptop cannot send `127.0.0.1` data to that remote server—`127.0.0.1` always points back to the laptop itself.
+
+For an OpenBCI demo today, use AttUne in the local browser on the same computer as the OpenBCI GUI. The public phone app still supports camera-based training, account history, and the rest of the hosted experience. Sending real-time EEG securely from a local device to the public phone app requires a future authenticated gateway; do not expose UDP port `12345` to the public internet.
+
+### Troubleshooting OpenBCI
+
+| Symptom | What to check |
+| --- | --- |
+| AttUne says “Waiting for OpenBCI GUI” | Verify `npm start` is running, the GUI protocol is UDP, the host is `127.0.0.1`, port is `12345`, and the Networking stream is started. |
+| No Band Power values | Keep the Band Power widget open, make sure the OpenBCI session is running, and select Average Band Power or Band Power in Networking. |
+| EEG live appears briefly, then disappears | Check the GUI is still streaming and that no firewall or other app is blocking UDP port `12345`. |
+| Relaxation has no waveform | Add the optional Time Series UDP output and leave the data stream running. |
+| Signal is noisy | Improve electrode contact, minimize cable motion and electrical interference, and use OpenBCI GUI's signal-quality tools. |
 
 ## Your data and privacy
 
