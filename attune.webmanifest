@@ -1,0 +1,12 @@
+{
+  "name": "AttUne — Attention Training",
+  "short_name": "AttUne",
+  "description": "Private attention and relaxation training with live neurofeedback.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7fafc",
+  "theme_color": "#b13c36",
+  "icons": [
+    { "src": "/icons/attune-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

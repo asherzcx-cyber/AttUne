@@ -1,0 +1,4 @@
+attune.example.com {
+  encode zstd gzip
+  reverse_proxy attune:3000
+}
