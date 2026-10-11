@@ -1,4 +1,5 @@
-attune.example.com {
+# Free DNS hostname for the current Vultr public IP. Caddy obtains HTTPS automatically.
+64.177.52.101.nip.io {
   encode zstd gzip
   reverse_proxy attune:3000
 }
